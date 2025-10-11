@@ -9,14 +9,15 @@ def chat_view(request):
     group_name = get_object_or_404(ChatGroup, group_name="public_chat")
     chat_messages = group_name.chat_messages.all()[:30]
     form = ChatMessageCreateForm()
-    if request.method == "POST":
+    if request.htmx:
         form = ChatMessageCreateForm(request.POST)
         if form.is_valid():
             message = form.save(commit=False)
             message.author = request.user
             message.group = group_name
             message.save()
-            return redirect("home")
+            context = {"message": message, "user": request.user}
+            return render(request, "a_rtchat/partials/chat_message.html", context)
     return render(
         request, "a_rtchat/chat.html", {"chat_messages": chat_messages, "form": form}
     )
